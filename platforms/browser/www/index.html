@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!--
+        Customize this policy to fit your own app's needs. For more guidance, see:
+            https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+        Some notes:
+            * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+            * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+            * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+                * Enable inline JS: add 'unsafe-inline' to default-src
+        -->
+<!--     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
+ -->
+    <!-- Required meta tags-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Your app title -->
+    <title>My App</title>
+
+    <!-- This template defaults to the iOS CSS theme. To support both iOS and material design themes, see the Framework7 Tutorial at the link below:
+        http://www.idangero.us/framework7/tutorials/maintain-both-ios-and-material-themes-in-single-app.html
+     -->
+
+    <link rel="stylesheet" href="lib/framework7/css/framework7.ios.min.css">
+    <link rel="stylesheet" href="lib/framework7/css/framework7.ios.colors.min.css">
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body onload="getPosition()">
+    <!-- Status bar overlay for full screen mode (PhoneGap) -->
+    <div class="statusbar-overlay"></div>
+
+    <!-- Panels overlay-->
+    <div class="panel-overlay"></div>
+    <!-- Left panel with reveal effect-->
+    <div class="panel panel-left panel-reveal">
+        <div class="content-block">
+            <p>Left panel content goes here</p>
+        </div>
+    </div>
+
+    <!-- Views -->
+    <div class="views">
+        <!-- Your main view, should have "view-main" class -->
+        <div class="view view-main">
+            <div class="pages navbar-through toolbar-through">
+                <!-- Page, "data-page" contains page name -->
+                <div data-page="index" class="page">
+                    <!-- Scrollable page content -->
+                    <div class="page-content">
+                        <div class="content-block">
+                            <p id="position"></p>
+                            <p id="weather"></p>
+                            <p id="rates"></p>
+                            <!-- <a href="about.html">About app</a> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="lib/framework7/js/framework7.min.js"></script>
+    <script type="text/javascript" src="js/my-app.js"></script>
+    <script>
+        function getPosition() {
+            fetch('http://ip-api.com/json/?fields=country,city,lat,lon,currency')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                document.getElementById('position').innerHTML = "You are currently at"+ "<br>" 
+                    + "Latitude: " + data.lat + "<br>"
+                    + "Longitude: " + data.lon + "<br>" + 
+                    "City: " + data.city + "<br>" +
+                    "Country: " + data.country;
+                getWeather(data.lat, data.lon);
+                getExchangeRates(data.currency);
+            });
+        }
+        function getWeather(lat, lon) {
+            fetch ('https://api.openweathermap.org/data/2.5/weather?lat=' +lat +"&lon=" + lon +'&appid=e8a1c8c1e32bc0dcc92eb899312183bc')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                document.getElementById('weather').innerHTML = 'Weather: ' + data.weather[0].main + ' with ' + data.weather[0].description +
+                '\n temp:'+data.main.temp;
+            });
+        }
+        function getExchangeRates(local) {
+            fetch ('http://data.fixer.io/api/latest?access_key=1339b4bba4f43b9b86fa3d905920ed3e&format=1')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                for(var currency in data.rates) {
+                    if (currency === local) {
+                        document.getElementById('rates').innerText =  "Exchange rate as of " + data.date 
+                        + "\n1 EUR : " + currency + " " + data.rates[currency];
+                    }
+                    if (currency === 'USD') {
+                        document.getElementById('rates').innerText +=  "\n1 EUR : " + currency + " " + data.rates[currency];
+                    }
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>
